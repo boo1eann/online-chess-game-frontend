@@ -2,6 +2,7 @@ import { router } from './lib/router';
 import { storage } from './lib/storage';
 import { LobbyPage } from './pages/LobbyPage';
 import { LoginPage } from './pages/LoginPage';
+import { RegisterPage } from './pages/RegisterPage';
 import { store } from './state/store';
 
 async function init() {
@@ -24,6 +25,11 @@ async function init() {
 	router.route('/login', async () => {
 		const loginPage = new LoginPage();
 		await loginPage.render();
+	});
+
+	router.route('/register', async () => {
+		const registerPage = new RegisterPage();
+		await registerPage.render();
 	});
 
 	router.route('/lobby', async () => {

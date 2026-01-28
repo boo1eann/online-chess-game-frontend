@@ -1,11 +1,20 @@
 import { storage } from '../lib/storage';
 import { API_BASE_URL, ENDPOINTS } from './endpoints';
 
-interface ApiResponse<T = any> {
-	success: boolean;
-	data?: T;
-	error?: string;
+// interface ApiResponse<T = any> {
+// 	success: boolean;
+// 	data?: T;
+// 	error?: string;
+// }
+
+interface ApiError {
+	error: string;
+	stack?: string;
 }
+
+type ApiResponse<T> =
+	| { success: true; data: T }
+	| ({ success: false } & ApiError);
 
 class ApiClient {
 	private baseURL: string;

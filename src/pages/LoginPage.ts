@@ -150,7 +150,7 @@ export class LoginPage {
 					isAuthenticated: true,
 				});
 
-				// router.navigate('/lobby');
+				router.navigate('/lobby');
 			} else {
 				alert(response.error || 'Login failed');
 			}

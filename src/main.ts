@@ -1,5 +1,6 @@
 import { router } from './lib/router';
 import { storage } from './lib/storage';
+import { LobbyPage } from './pages/LobbyPage';
 import { LoginPage } from './pages/LoginPage';
 import { store } from './state/store';
 
@@ -20,9 +21,19 @@ async function init() {
 		}
 	})
 
-	router.route('login', async () => {
+	router.route('/login', async () => {
 		const loginPage = new LoginPage();
 		await loginPage.render();
+	});
+
+	router.route('/lobby', async () => {
+		const state = store.getState();
+		if (!state.isAuthenticated) {
+			router.navigate('/login');
+			return;
+		}
+		const lobbyPage = new LobbyPage();
+		await lobbyPage.render();
 	})
 
 	router.start();

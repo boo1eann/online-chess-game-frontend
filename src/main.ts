@@ -1,5 +1,6 @@
 import { router } from './lib/router';
 import { storage } from './lib/storage';
+import { GamePage } from './pages/GamePage';
 import { LobbyPage } from './pages/LobbyPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
@@ -40,6 +41,17 @@ async function init() {
 		}
 		const lobbyPage = new LobbyPage();
 		await lobbyPage.render();
+	});
+
+	router.route('/game', async () => {
+		const state = store.getState();
+		if (!state.isAuthenticated) {
+			router.navigate('/login');
+			return;
+		}
+
+		const gamePage = new GamePage();
+		await gamePage.render();
 	})
 
 	router.start();

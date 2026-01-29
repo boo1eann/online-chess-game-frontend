@@ -1,4 +1,25 @@
+import { apiClient } from '../api/client';
+import { ENDPOINTS } from '../api/endpoints';
 import { $, clearElement, createElement } from '../lib/dom';
+import { router } from '../lib/router';
+import { store } from '../state/store';
+
+export interface CreateMatchResponse {
+	matchId: string;
+	status: string;
+	createdAt: Date;
+}
+
+export interface GetMatchStateResponse {
+	matchId: string;
+	player1Id: string;
+	player2Id?: string;
+	status: string;
+	currentTurn: string;
+	moves: any[];
+	result?: string;
+	winnerId?: string;
+}
 
 export class LobbyPage {
 	public async render(): Promise<void> {
@@ -14,7 +35,7 @@ export class LobbyPage {
 			'Create New Match',
 			'Create a new match and wait for an opponent',
 			'Create Match',
-			() => alert('handCreateMatch()'),
+			() => this.handleCreateMatch(),
 		);
 
 		const joinCard = this.createCard(
@@ -60,5 +81,22 @@ export class LobbyPage {
 		card.appendChild(button);
 
 		return card;
+	}
+
+	private async handleCreateMatch(): Promise<void> {
+		try {
+			const response = await apiClient.post<CreateMatchResponse>(ENDPOINTS.GAME.CREATE_MATCH);
+
+			if (response.success) {
+				store.setState({ currentMatch: response.data });
+				router.navigate('/game');
+			} else {
+				alert(response.error);
+			}
+
+		} catch (error) {
+			console.error('Create match error: ', error);
+			alert('Failed to create match');
+		}
 	}
 }

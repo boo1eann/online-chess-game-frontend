@@ -1,3 +1,4 @@
+import { router } from '../lib/router';
 import { storage } from '../lib/storage';
 import { API_BASE_URL, ENDPOINTS } from './endpoints';
 
@@ -45,16 +46,18 @@ class ApiClient {
 
 			// Handle 401 - token expired
 			if (response.status === 401) {
-				const refreshed = await this.refreshToken();
+				if (data.code === 'TOKEN_EXPIRED') {
+					const refreshed = await this.refreshToken();
 
-				if (refreshed) {
-					// Retry original request
-					return this.request(endpoint, options);
-				} else {
-					// Redirect to login
-					storage.clearTokens();
-					storage.clearUser();
-					window.location.href = '/login';
+					if (refreshed) {
+						// Retry original request
+						return this.request(endpoint, options);
+					} else {
+						// Redirect to login
+						storage.clearTokens();
+						storage.clearUser();
+						router.navigate('/login');
+					}
 				}
 			}
 

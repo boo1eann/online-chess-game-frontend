@@ -41,7 +41,7 @@ export class LoginPage {
 	private createForm(): HTMLFormElement {
 		const form = createElement('form', { class: 'auth-form' });
 		form.onsubmit = (e) => this.handleSubmit(e);
-		HTMLLabelElement
+
 		// Email
 		const emailGroup = createElement('div', { class: 'form-group' });
 		const emailLabel = createElement('label', { text: 'Email', htmlFor: 'email' });

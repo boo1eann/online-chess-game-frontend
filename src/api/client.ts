@@ -1,15 +1,9 @@
 import { storage } from "../lib/storage";
 import { API_BASE_URL, ENDPOINTS } from "./endpoints";
 
-// interface ApiResponse<T = any> {
-// 	success: boolean;
-// 	data?: T;
-// 	error?: string;
-// }
-
 interface ApiError {
   error: string;
-  stack?: string;
+  errorCode?: string;
 }
 
 type ApiResponse<T> =
@@ -18,9 +12,25 @@ type ApiResponse<T> =
 
 class ApiClient {
   private baseURL: string;
+  private isRefreshing = false;
 
   constructor(baseURL: string) {
     this.baseURL = baseURL;
+  }
+
+  private forceLogout(): never {
+    storage.clearTokens();
+    storage.clearUser();
+    window.location.href = "/login";
+    throw new Error("Unauthorized");
+  }
+
+  private async safeJson(response: Response): Promise<any | null> {
+    try {
+      return await response.json();
+    } catch {
+      return null;
+    }
   }
 
   private async request<T>(
@@ -44,28 +54,40 @@ class ApiClient {
         headers,
       });
 
-      const data = await response.json();
+      const data = await this.safeJson(response);
 
       // Handle 401 - token expired
       if (response.status === 401) {
-        if (data.code === "TOKEN_EXPIRED") {
+        if (data?.errorCode === "ACCESS_TOKEN_EXPIRED") {
+          if (this.isRefreshing) {
+            return data;
+          }
+
+          this.isRefreshing = true;
           const refreshed = await this.refreshToken();
+          this.isRefreshing = false;
 
           if (refreshed) {
-            // Retry original request
             return this.request(endpoint, options);
-          } else {
-            // Redirect to login
-            storage.clearTokens();
-            storage.clearUser();
-            window.location.href = "/login";
           }
+
+          this.forceLogout();
         }
+
+        this.forceLogout();
+      }
+
+      // ---- 409 Conflict (business logic) ----
+      if (response.status === 409) {
+        return data;
+      }
+
+      if (!response.ok) {
+        return data;
       }
 
       return data;
     } catch (error) {
-      console.error("API request error: ", error);
       return {
         success: false,
         error: error instanceof Error ? error.message : "Network error",

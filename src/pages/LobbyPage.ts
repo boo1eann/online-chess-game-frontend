@@ -4,6 +4,12 @@ import { $, clearElement, createElement } from "../lib/dom";
 import { router } from "../lib/router";
 import { store } from "../state/store";
 
+export interface CreateMatchDto {
+  matchId: string;
+  status: string;
+  createdAt: string; // ISO-строка из сервера
+}
+
 export interface CreateMatchResponse {
   matchId: string;
   status: string;
@@ -94,20 +100,25 @@ export class LobbyPage {
   }
 
   private async handleCreateMatch(): Promise<void> {
-    try {
-      const response = await apiClient.post<CreateMatchResponse>(
-        ENDPOINTS.GAME.CREATE_MATCH,
-      );
+    const response = await apiClient.post<CreateMatchDto>(
+      ENDPOINTS.GAME.CREATE_MATCH,
+    );
+    console.log(response);
 
-      if (response.success) {
-        store.setState({ currentMatch: response.data });
-        router.navigate("/game");
-      } else {
-        alert(response.error);
-      }
-    } catch (error) {
-      console.error("Create match error: ", error);
-      alert("Failed to create match");
+    if (response.success) {
+      const match: CreateMatchResponse = {
+        ...response.data,
+        createdAt: new Date(response.data.createdAt),
+      };
+
+      console.log(match);
+      store.setState({ currentMatch: match });
+      router.navigate("/game");
+    } else if (response.errorCode === "ACTIVE_GAME_EXISTS") {
+      alert("У вас уже есть активная партия!");
+      router.navigate("/game");
+    } else {
+      alert(response.error || "Не удалось создать партию");
     }
   }
 
